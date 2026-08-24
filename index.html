@@ -65,36 +65,36 @@ const CONFIG = { csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRN43M
 // ================================
 
 const PURPOSES = [
-  {v:'grow',      label:'Grow spiritually / go deeper with God',        phrase:'grow spiritually and go deeper with God'},
-  {v:'community', label:'Build deeper community & relationships',        phrase:'build deeper community and relationships'},
-  {v:'literacy',  label:'Know the Bible better',                        phrase:'grow in knowing the Bible'},
-  {v:'apply',     label:'Live out our faith day to day',                phrase:'grow in living out our faith'},
-  {v:'outreach',  label:'Make room for newcomers / outreach',           phrase:'make room for newcomers and outreach'},
-  {v:'restore',   label:'Be encouraged & restored through this season', phrase:'find encouragement and restoration'},
-];
-const PURPOSE_TITLE = 'Our top aim this season';
+    {v:'grow',      label:"Grow Spiritually / Go Deeper With God", phrase:'grow spiritually and go deeper with God'},
+    {v:'community', label:"Build Deeper Community & Relationships", phrase:'build deeper community and relationships'},
+    {v:'literacy',  label:"Know The Bible Better", phrase:'grow in knowing the Bible'},
+    {v:'apply',     label:"Live Out My Faith Day To Day", phrase:'grow in living out our faith'},
+    {v:'outreach',  label:"Make Room For Newcomers / Outreach", phrase:'make room for newcomers and outreach'},
+    {v:'restore',   label:"Be Encouraged & Restored This Season", phrase:'find encouragement and restoration'},
+  ];
+const PURPOSE_TITLE = "What do you most want our next study to do for you?";
 
 // key -> exact form question title, plus pole labels + which section
 const SCALES = [
-  {key:'formed',   t:'Where our group is right now', low:'New / forming', high:'Established / close', part:1},
-  {key:'maturity', t:'Our spiritual maturity mix',   low:'Mostly exploring', high:'Mostly mature', part:1},
-  {key:'capacity', t:'Our capacity this season',     low:'Stretched / low', high:'Eager / high', part:1},
-  {key:'posture',  t:'What we need more of right now',low:'Encouragement / rest', high:'Challenge / stretch', part:1},
-  {key:'emphasis', t:'Where the weight should fall',  low:'Understanding', high:'Transformation', part:1},
-  {key:'delivery', t:'Format preference',             low:'Video-led', high:'Discussion & reading', part:2},
-  {key:'source',   t:'What to study',                 low:'Bible book', high:'Topical book', part:2},
-  {key:'method',   t:'Bible study approach',          low:'Inductive', high:'Guided', part:2},
-  {key:'homework', t:'Homework between meetings',     low:'None', high:'Weekly', part:2},
-  {key:'length',   t:'How long it should run',        low:'Short', high:'Long', part:2},
-  {key:'prep',     t:'Facilitator prep load',         low:'Open-and-go', high:'Facilitator builds', part:2},
-  {key:'level',    t:'How deep it should go',         low:'Accessible', high:'Deep', part:2},
-];
+    {key:'formed',   t:"In your view, where is our group right now?", low:"New / Forming", high:"Established / Close", part:1},
+    {key:'maturity', t:"How would you describe our group's spiritual maturity?", low:"Mostly Exploring", high:"Mostly Mature", part:1},
+    {key:'capacity', t:"How much capacity do you have for this season?", low:"Stretched / Low", high:"Eager / High", part:1},
+    {key:'posture',  t:"What do you feel you need more of right now?", low:"Encouragement / Rest", high:"Challenge / Stretch", part:1},
+    {key:'emphasis', t:"Where would you like the weight to fall?", low:"Understanding", high:"Transformation", part:1},
+    {key:'delivery', t:"How would you prefer the teaching to come to us?", low:"Video-Led", high:"Discussion", part:2},
+    {key:'source',   t:"What would you rather study?", low:"Bible Book", high:"Topical Book", part:2},
+    {key:'method',   t:"If we do a Bible study, how would you prefer to work through it?", low:"Inductive", high:"Guided", part:2},
+    {key:'homework', t:"How much homework between meetings would you want?", low:"None", high:"Weekly", part:2},
+    {key:'length',   t:"How long would you like the study to run?", low:"Short", high:"Long", part:2},
+    {key:'prep',     t:"How much prep should the study require?", low:"Open-And-Go", high:"Facilitator Builds", part:2},
+    {key:'level',    t:"How deep would you like the study to go?", low:"Accessible", high:"Deep", part:2},
+  ];
 const TEXTS = [
-  {key:'stirring', t:'What God has been stirring in us'},
-  {key:'focus',    t:'Our one focus word for this season'},
-  {key:'nudge',    t:'What we sense God nudging us toward or away from'},
-  {key:'topic',    t:'A topic or theme we are hungry for'},
-];
+    {key:'stirring', t:"What has God been stirring in you lately?"},
+    {key:'focus',    t:"If this season had one focus word for you, what would it be?"},
+    {key:'nudge',    t:"Is there anything you sense God nudging you toward or away from?"},
+    {key:'topic',    t:"What topic or theme are you hungry to study?"},
+  ];
 
 const BANDS = {
   delivery:{ left:{w:'video-led', f:'Format: video series (look for an included discussion guide)'}, mid:{}, right:{w:'discussion-based', f:'Format: discussion / reading — no video needed'} },
@@ -235,12 +235,12 @@ function render(a){
   c.appendChild(pc);
 
   // part 1 scales
-  const p1=el('div','card'); p1.appendChild(el('h2',null,'Part 1 — Our why (averages)'));
+  const p1=el('div','card'); p1.appendChild(el('h2',null,'Why — what we need this season (averages)'));
   SCALES.filter(s=>s.part===1).forEach(s=> p1.appendChild(scaleRow(s,a.scaleAvg[s.key],a.scaleN[s.key])));
   c.appendChild(p1);
 
   // part 2 scales
-  const p2=el('div','card'); p2.appendChild(el('h2',null,'Part 2 — How we run it (averages)'));
+  const p2=el('div','card'); p2.appendChild(el('h2',null,'How — the shape of the study (averages)'));
   SCALES.filter(s=>s.part===2).forEach(s=> p2.appendChild(scaleRow(s,a.scaleAvg[s.key],a.scaleN[s.key])));
   c.appendChild(p2);
 
