@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Group Study — Results Dashboard</title>
+<style>
+  :root{ --blue:#1F4E79; --light:#DCE6F1; --ink:#222; --muted:#5b6470; --line:#d9dee6; --track:#e8edf3; }
+  *{ box-sizing:border-box; }
+  body{ font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--ink); margin:0; background:#f4f6f9; line-height:1.5; }
+  .wrap{ max-width:820px; margin:0 auto; padding:26px 20px 70px; }
+  h1{ color:var(--blue); font-size:26px; margin:0 0 2px; }
+  .meta{ color:var(--muted); font-size:14px; margin:0 0 18px; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:16px; }
+  .card h2{ color:var(--blue); font-size:19px; margin:0 0 8px; }
+  .card h3{ color:var(--blue); font-size:14px; margin:16px 0 8px; text-transform:uppercase; letter-spacing:.05em; }
+  .rec{ background:var(--light); border:none; }
+  .sentence{ font-size:15.5px; }
+  ul{ margin:6px 0; padding-left:20px; }
+  li{ margin:6px 0; }
+  .filters b{ color:var(--blue); }
+  /* scale rows */
+  .srow{ margin:14px 0; }
+  .slabels{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-bottom:3px; }
+  .track{ position:relative; height:10px; background:var(--track); border-radius:6px; }
+  .track .mid{ position:absolute; left:50%; top:-3px; bottom:-3px; width:1px; background:#c3ccd8; }
+  .track .marker{ position:absolute; top:-4px; width:18px; height:18px; border-radius:50%; background:var(--blue); transform:translateX(-50%); box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .stitle{ display:flex; justify-content:space-between; font-size:14px; font-weight:600; }
+  .stitle .avg{ color:var(--blue); font-weight:700; }
+  /* purpose bars */
+  .pbar{ display:flex; align-items:center; gap:10px; margin:7px 0; font-size:14px; }
+  .pbar .barwrap{ flex:1; background:var(--track); border-radius:6px; height:20px; overflow:hidden; }
+  .pbar .bar{ height:100%; background:var(--blue); border-radius:6px; }
+  .pbar .cnt{ width:34px; text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .pbar.top .lbl{ font-weight:700; }
+  .chip{ display:inline-block; background:#eef3f9; border:1px solid var(--line); border-radius:14px; padding:3px 10px; margin:3px 4px 0 0; font-size:13px; }
+  button{ font-size:14px; font-weight:600; border-radius:9px; padding:9px 16px; cursor:pointer; border:1px solid var(--blue); background:#fff; color:var(--blue); }
+  button.primary{ background:var(--blue); color:#fff; }
+  .setup{ background:#fff8e6; border:1px solid #f0e0a8; }
+  .setup code{ background:#fbecc4; padding:1px 5px; border-radius:4px; }
+  input[type=text]{ width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
+  .muted{ color:var(--muted); font-size:13px; }
+  a{ color:var(--blue); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Home Group Study — Results</h1>
+  <p class="meta"><span id="count">Loading…</span> &nbsp;·&nbsp; <button onclick="load()">Reload</button></p>
+
+  <div class="card setup" id="setup" style="display:none;">
+    <h2>One-time setup</h2>
+    <p class="muted">Paste your published-CSV link from the responses sheet (File → Share → Publish to web → the responses tab → CSV). It's remembered in this browser.</p>
+    <input type="text" id="csvInput" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
+    <p style="margin-top:10px;"><button class="primary" onclick="saveUrl()">Save & load</button></p>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+// ============ CONFIG ============
+// Paste your published CSV URL here (or leave blank and use the on-page box).
+const CONFIG = { csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRN43MHZwlZeqa-qmRw01zYmyaEU_TNl-KgFQy_3OoSxF2hLUdE2iNyKwX8zI1tM8R1uK7_7PVjSH6n/pub?gid=2137282562&single=true&output=csv" };
+// ================================
+
+const PURPOSES = [
+  {v:'grow',      label:'Grow spiritually / go deeper with God',        phrase:'grow spiritually and go deeper with God'},
+  {v:'community', label:'Build deeper community & relationships',        phrase:'build deeper community and relationships'},
+  {v:'literacy',  label:'Know the Bible better',                        phrase:'grow in knowing the Bible'},
+  {v:'apply',     label:'Live out our faith day to day',                phrase:'grow in living out our faith'},
+  {v:'outreach',  label:'Make room for newcomers / outreach',           phrase:'make room for newcomers and outreach'},
+  {v:'restore',   label:'Be encouraged & restored through this season', phrase:'find encouragement and restoration'},
+];
+const PURPOSE_TITLE = 'Our top aim this season';
+
+// key -> exact form question title, plus pole labels + which section
+const SCALES = [
+  {key:'formed',   t:'Where our group is right now', low:'New / forming', high:'Established / close', part:1},
+  {key:'maturity', t:'Our spiritual maturity mix',   low:'Mostly exploring', high:'Mostly mature', part:1},
+  {key:'capacity', t:'Our capacity this season',     low:'Stretched / low', high:'Eager / high', part:1},
+  {key:'posture',  t:'What we need more of right now',low:'Encouragement / rest', high:'Challenge / stretch', part:1},
+  {key:'emphasis', t:'Where the weight should fall',  low:'Understanding', high:'Transformation', part:1},
+  {key:'delivery', t:'Format preference',             low:'Video-led', high:'Discussion & reading', part:2},
+  {key:'source',   t:'What to study',                 low:'Bible book', high:'Topical book', part:2},
+  {key:'method',   t:'Bible study approach',          low:'Inductive', high:'Guided', part:2},
+  {key:'homework', t:'Homework between meetings',     low:'None', high:'Weekly', part:2},
+  {key:'length',   t:'How long it should run',        low:'Short', high:'Long', part:2},
+  {key:'prep',     t:'Facilitator prep load',         low:'Open-and-go', high:'Facilitator builds', part:2},
+  {key:'level',    t:'How deep it should go',         low:'Accessible', high:'Deep', part:2},
+];
+const TEXTS = [
+  {key:'stirring', t:'What God has been stirring in us'},
+  {key:'focus',    t:'Our one focus word for this season'},
+  {key:'nudge',    t:'What we sense God nudging us toward or away from'},
+  {key:'topic',    t:'A topic or theme we are hungry for'},
+];
+
+const BANDS = {
+  delivery:{ left:{w:'video-led', f:'Format: video series (look for an included discussion guide)'}, mid:{}, right:{w:'discussion-based', f:'Format: discussion / reading — no video needed'} },
+  source:{ left:{w:'Bible study', f:'Type: a book-of-the-Bible study'}, mid:{}, right:{w:'topical book study', f:'Type: a topical Christian book'} },
+  method:{ left:{w:', worked inductively', f:'Approach: inductive / question-driven'}, mid:{}, right:{w:', guided by a teacher', f:'Approach: guided / teaching-led / curriculum'} },
+  homework:{ left:{w:'no homework', f:'Homework: none — self-contained sessions'}, mid:{w:'a little homework', f:'Homework: light reading only'}, right:{w:'weekly homework', f:'Homework: weekly readings or questions'} },
+  length:{ left:{w:'short', f:'Length: about 4–6 sessions'}, mid:{}, right:{w:'longer', f:'Length: 8–12+ sessions'} },
+  prep:{ left:{w:'and easy for facilitators to run', f:'Leader prep: open-and-go (easy to rotate)'}, mid:{}, right:{w:'that a facilitator will build out', f:'Leader prep: facilitator prepares/teaches'} },
+  level:{ left:{w:'kept accessible', f:'Level: introductory / foundational / newcomer-friendly'}, mid:{}, right:{w:'that goes deep', f:'Level: in-depth / advanced'} },
+};
+const bandOf = avg => avg<2.5 ? 'left' : (avg>3.5 ? 'right' : 'mid');
+
+// ---------- CSV ----------
+function parseCSV(text){
+  const rows=[]; let row=[], field='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; }
+      else field+=c;
+    } else {
+      if(c==='"') q=true;
+      else if(c===','){ row.push(field); field=''; }
+      else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c==='\r'){ }
+      else field+=c;
+    }
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>r.length && r.some(x=>x!==''));
+}
+function toObjects(rows){
+  if(!rows.length) return [];
+  const head=rows[0]; const out=[];
+  for(let i=1;i<rows.length;i++){ const o={}; head.forEach((h,j)=>o[h.trim()]=(rows[i][j]||'').trim()); out.push(o); }
+  return out;
+}
+
+// ---------- aggregate + recommend ----------
+function analyze(objs){
+  const n=objs.length;
+  const scaleAvg={}, scaleN={};
+  SCALES.forEach(s=>{
+    const vals=objs.map(o=>parseFloat(o[s.t])).filter(v=>!isNaN(v));
+    scaleN[s.key]=vals.length;
+    scaleAvg[s.key]= vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+  });
+  const pcount={}; PURPOSES.forEach(p=>pcount[p.v]=0);
+  objs.forEach(o=>{ const lbl=o[PURPOSE_TITLE]; const p=PURPOSES.find(x=>x.label===lbl); if(p)pcount[p.v]++; });
+  let topPurpose=null,max=-1; PURPOSES.forEach(p=>{ if(pcount[p.v]>max){max=pcount[p.v];topPurpose=p.v;} });
+  if(max<=0) topPurpose=null;
+
+  const texts={}; TEXTS.forEach(t=>{ texts[t.key]=objs.map(o=>o[t.t]).filter(x=>x&&x.length); });
+
+  return {n, scaleAvg, scaleN, pcount, topPurpose, texts};
+}
+
+function recommend(a){
+  const b={}; SCALES.forEach(s=> b[s.key]= a.scaleAvg[s.key]==null? 'mid' : bandOf(a.scaleAvg[s.key]));
+  const purpose=a.topPurpose; const pObj=PURPOSES.find(p=>p.v===purpose);
+  const formedMap={left:'a newer, still-forming group', mid:'a group somewhere in between', right:'an established, close group'};
+  const matMap={left:'mostly exploring faith', mid:'a real mix of spiritual maturity', right:'mostly mature'};
+  const capMap={left:'limited capacity right now', mid:'steady capacity', right:'high energy right now'};
+  const postMap={left:'we need more encouragement and rest', mid:'we need a balance of rest and challenge', right:'we are ready to be challenged and stretched'};
+  const emphMap={left:'with the weight on understanding', mid:'holding understanding and life-change together', right:'with the weight on transformation and application'};
+
+  let why=''; if(pObj) why+='Our main aim this season is to '+pObj.phrase+'. ';
+  why+='We’re '+formedMap[b.formed]+', '+matMap[b.maturity]+', with '+capMap[b.capacity]+'. ';
+  why+='Right now '+postMap[b.posture]+', '+emphMap[b.emphasis]+'.';
+
+  const L=[];
+  if(b.capacity==='left') L.push('Capacity is limited, so lean shorter (4–6 weeks) and lighter or no homework.');
+  if(b.formed==='left'||b.maturity==='left') L.push('The group is newer / still exploring, so keep it accessible and consider a guided approach over inductive.');
+  if(b.posture==='left') L.push('The group needs encouragement more than a heavy grind — an encouraging study may fit better right now.');
+  if(b.posture==='right'&&b.emphasis==='right'&&b.maturity==='right') L.push('The group is ready to be stretched — inductive study, more homework, and greater depth are on the table.');
+  if(b.emphasis==='right') L.push('Because the weight is on transformation, pick a study strong on application and discussion.');
+  if(purpose==='literacy') L.push('For knowing the Bible better, lean toward a book of the Bible — inductive builds that skill.');
+  if(purpose==='community') L.push('For deeper community, protect discussion time — lighter content or non-video helps people talk.');
+  if(purpose==='outreach') L.push('For newcomers/outreach, keep it short, accessible, and low-barrier.');
+  if(purpose==='restore') L.push('For a restorative season, an encouraging topical book with light homework fits.');
+  if(purpose==='apply') L.push('To live it out, choose a study with strong application questions and real discussion.');
+  if(purpose==='grow') L.push('For going deeper with God, build in space for prayer and reflection, not just content.');
+
+  const sourceRight = b.source==='right';
+  const len=BANDS.length[b.length].w||'', deliv=BANDS.delivery[b.delivery].w||'', src=BANDS.source[b.source].w||'study';
+  const meth=(!sourceRight && BANDS.method[b.method].w)?BANDS.method[b.method].w:'';
+  const hw=BANDS.homework[b.homework].w||'', lvl=BANDS.level[b.level].w||'', prep=BANDS.prep[b.prep].w||'';
+  let fmt="The group leans toward a "+[len,deliv,src].filter(Boolean).join(' ')+meth;
+  const tail=[hw,lvl,prep].filter(Boolean).join(', '); if(tail) fmt+=", with "+tail; fmt+='.';
+
+  const items=[];
+  ['source','delivery','method','homework','length','prep','level'].forEach(k=>{ if(k==='method'&&sourceRight)return; const f=BANDS[k][b[k]].f; if(f)items.push(f); });
+
+  return {why, leanings:L, fmt, filters:items};
+}
+
+// ---------- render ----------
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
+
+function scaleRow(s, avg, n){
+  const pct = avg==null? 50 : ((avg-1)/4)*100;
+  const wrap=el('div','srow');
+  wrap.appendChild(el('div','stitle','<span>'+s.t+'</span><span class="avg">'+(avg==null?'—':avg.toFixed(1))+'</span>'));
+  wrap.appendChild(el('div','slabels','<span>'+s.low+'</span><span>'+s.high+'</span>'));
+  const track=el('div','track'); track.appendChild(el('div','mid')); const m=el('div','marker'); m.style.left=pct+'%'; track.appendChild(m);
+  wrap.appendChild(track);
+  return wrap;
+}
+
+function render(a){
+  const c=document.getElementById('content'); c.innerHTML='';
+  document.getElementById('count').textContent = a.n + (a.n===1?' response':' responses');
+  if(a.n===0){ c.appendChild(el('div','card','<p>No responses yet. Share the form link, then hit Reload.</p>')); return; }
+
+  const rec=recommend(a);
+
+  // recommendation
+  const rc=el('div','card rec');
+  rc.appendChild(el('h2',null,'Group recommendation'));
+  rc.appendChild(el('p','sentence','<b>Our why:</b> '+rec.why));
+  rc.appendChild(el('p','sentence','<b>Format the group leans toward:</b> '+rec.fmt));
+  rc.appendChild(el('h3',null,'Suggested leanings'));
+  const lu=el('ul'); (rec.leanings.length?rec.leanings:['—']).forEach(t=>lu.appendChild(el('li',null,t))); rc.appendChild(lu);
+  rc.appendChild(el('h3',null,'What to look for'));
+  const fu=el('ul','filters'); (rec.filters.length?rec.filters:['—']).forEach(t=>{const i=t.indexOf(':');fu.appendChild(el('li',null,i>-1?'<b>'+t.slice(0,i)+'</b>'+t.slice(i):t));}); rc.appendChild(fu);
+  c.appendChild(rc);
+
+  // purpose
+  const pc=el('div','card'); pc.appendChild(el('h2',null,'Top aim this season'));
+  const maxc=Math.max(1,...PURPOSES.map(p=>a.pcount[p.v]));
+  PURPOSES.forEach(p=>{
+    const row=el('div','pbar'+(p.v===a.topPurpose?' top':''));
+    row.appendChild(el('span','lbl','',)); row.lastChild.textContent=p.label; row.lastChild.style.flex='0 0 46%'; row.lastChild.style.fontSize='13.5px';
+    const bw=el('div','barwrap'); const b=el('div','bar'); b.style.width=(a.pcount[p.v]/maxc*100)+'%'; if(a.pcount[p.v]===0)b.style.width='2px'; bw.appendChild(b); row.appendChild(bw);
+    row.appendChild(el('span','cnt',String(a.pcount[p.v])));
+    pc.appendChild(row);
+  });
+  c.appendChild(pc);
+
+  // part 1 scales
+  const p1=el('div','card'); p1.appendChild(el('h2',null,'Part 1 — Our why (averages)'));
+  SCALES.filter(s=>s.part===1).forEach(s=> p1.appendChild(scaleRow(s,a.scaleAvg[s.key],a.scaleN[s.key])));
+  c.appendChild(p1);
+
+  // part 2 scales
+  const p2=el('div','card'); p2.appendChild(el('h2',null,'Part 2 — How we run it (averages)'));
+  SCALES.filter(s=>s.part===2).forEach(s=> p2.appendChild(scaleRow(s,a.scaleAvg[s.key],a.scaleN[s.key])));
+  c.appendChild(p2);
+
+  // discernment
+  const dc=el('div','card'); dc.appendChild(el('h2',null,'In our own words'));
+  if(a.texts.focus.length){ dc.appendChild(el('h3',null,'Focus words')); const chips=el('div'); a.texts.focus.forEach(f=>chips.appendChild(el('span','chip',f))); dc.appendChild(chips); }
+  if(a.texts.topic.length){ dc.appendChild(el('h3',null,'Topics we are hungry for')); const chips=el('div'); a.texts.topic.forEach(f=>chips.appendChild(el('span','chip',f))); dc.appendChild(chips); }
+  if(a.texts.stirring.length){ dc.appendChild(el('h3',null,'What God has been stirring')); const ul=el('ul'); a.texts.stirring.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
+  if(a.texts.nudge.length){ dc.appendChild(el('h3',null,'Nudges toward / away')); const ul=el('ul'); a.texts.nudge.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
+  if(!a.texts.focus.length && !a.texts.topic.length && !a.texts.stirring.length && !a.texts.nudge.length) dc.appendChild(el('p','muted','No written responses yet.'));
+  c.appendChild(dc);
+}
+
+// ---------- load ----------
+function csvUrl(){ return CONFIG.csvUrl || localStorage.getItem('hgsp_csv') || ''; }
+function saveUrl(){ const v=document.getElementById('csvInput').value.trim(); if(v){ localStorage.setItem('hgsp_csv',v); load(); } }
+function load(){
+  const url=csvUrl();
+  if(!url){ document.getElementById('setup').style.display='block'; document.getElementById('count').textContent='Not configured'; return; }
+  document.getElementById('setup').style.display='none';
+  document.getElementById('count').textContent='Loading…';
+  fetch(url + (url.indexOf('?')>-1?'&':'?') + 'cb=' + Date.now())
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+    .then(txt=> render(analyze(toObjects(parseCSV(txt)))) )
+    .catch(e=>{ document.getElementById('count').textContent='Could not load data'; document.getElementById('content').innerHTML='<div class="card"><p>Couldn\'t read the responses ('+e.message+'). Check that the sheet is published to the web as CSV and the link is correct.</p></div>'; document.getElementById('setup').style.display='block'; });
+}
+load();
+</script>
+</body>
+</html>
