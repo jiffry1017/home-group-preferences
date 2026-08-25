@@ -61,7 +61,7 @@
 <script>
 // ============ CONFIG ============
 // Paste your published CSV URL here (or leave blank and use the on-page box).
-const CONFIG = { csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRN43MHZwlZeqa-qmRw01zYmyaEU_TNl-KgFQy_3OoSxF2hLUdE2iNyKwX8zI1tM8R1uK7_7PVjSH6n/pub?gid=2137282562&single=true&output=csv" };
+const CONFIG = { csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwZxXxHYGzhdsNhLfUxIj4I2OuObifYMRmgwN_WWeMCN7hiMNH0eDeGBnfVBp2lAHVrny3kJ4MW2Kd/pub?gid=4980473&single=true&output=csv" };
 // ================================
 
 const PURPOSES = [
@@ -72,7 +72,7 @@ const PURPOSES = [
     {v:'outreach',  label:"Make Room For Newcomers / Outreach", phrase:'make room for newcomers and outreach'},
     {v:'restore',   label:"Be Encouraged & Restored This Season", phrase:'find encouragement and restoration'},
   ];
-const PURPOSE_TITLE = "What do you most want our next study to do for you?";
+const PURPOSE_TITLE = "What do you most want out of our next study?";
 
 // key -> exact form question title, plus pole labels + which section
 const SCALES = [
@@ -80,29 +80,38 @@ const SCALES = [
     {key:'maturity', t:"How would you describe our group's spiritual maturity?", low:"Mostly Exploring", high:"Mostly Mature", part:1},
     {key:'capacity', t:"How much capacity do you have for this season?", low:"Stretched / Low", high:"Eager / High", part:1},
     {key:'posture',  t:"What do you feel you need more of right now?", low:"Encouragement / Rest", high:"Challenge / Stretch", part:1},
-    {key:'emphasis', t:"Where would you like the weight to fall?", low:"Understanding", high:"Transformation", part:1},
-    {key:'delivery', t:"How would you prefer the teaching to come to us?", low:"Video-Led", high:"Discussion", part:2},
-    {key:'source',   t:"What would you rather study?", low:"Bible Book", high:"Topical Book", part:2},
+    {key:'delivery', t:"What teaching format do you prefer?", low:"Video-Led", high:"Discussion", part:2},
+    {key:'source',   t:"What would you rather study?", low:"Bible Book", high:"Topical", part:2},
     {key:'method',   t:"If we do a Bible study, how would you prefer to work through it?", low:"Inductive", high:"Guided", part:2},
-    {key:'homework', t:"How much homework between meetings would you want?", low:"None", high:"Weekly", part:2},
     {key:'length',   t:"How long would you like the study to run?", low:"Short", high:"Long", part:2},
-    {key:'prep',     t:"How much prep should the study require?", low:"Open-And-Go", high:"Facilitator Builds", part:2},
+    {key:'prep',     t:"How much prep should leading the study require?", low:"Open-And-Go", high:"Needs Prep", part:2},
     {key:'level',    t:"How deep would you like the study to go?", low:"Accessible", high:"Deep", part:2},
   ];
+  const HOMEWORK_TITLE = "How do you feel about homework between meetings?";
+  const HOMEWORK = [
+    {v:'none',   label:"Prefer none - I'll engage fully in the meeting", band:'left'},
+    {v:'light',  label:"Light only - a short reading (10-15 min)", band:'mid'},
+    {v:'weekly', label:"Happy to prep weekly - readings and questions", band:'right'},
+    {v:'deep',   label:"I want to go deep - the more the better", band:'right'},
+  ];
+  const MIX_TITLE = "For this year, would you like more or less of each?";
+  const MIX_ROWS = ["Bible or book studies","Sharing & prayer nights","Testimonies","Men's / Women's pods","Fun hangouts (BBQ, games, meals)","Worship & prayer nights","Serving / outreach together","Joint events with other groups"];
+  const CADENCE_TITLE = "In a typical month, how many of our gatherings would you like to be a study?";
+  const CADENCE_OPTS = ["Most weeks","About half","Once or twice","No strong preference"];
+  const RHYTHM_TITLE = "Anything else you'd like to include this year?";
 const TEXTS = [
     {key:'stirring', t:"What has God been stirring in you lately?"},
     {key:'focus',    t:"If this season had one focus word for you, what would it be?"},
-    {key:'nudge',    t:"Is there anything you sense God nudging you toward or away from?"},
-    {key:'topic',    t:"What topic or theme are you hungry to study?"},
+    {key:'topic',    t:"Is there a topic or theme you'd like us to study?"},
   ];
 
 const BANDS = {
   delivery:{ left:{w:'video-led', f:'Format: video series (look for an included discussion guide)'}, mid:{}, right:{w:'discussion-based', f:'Format: discussion / reading — no video needed'} },
-  source:{ left:{w:'Bible study', f:'Type: a book-of-the-Bible study'}, mid:{}, right:{w:'topical book study', f:'Type: a topical Christian book'} },
+  source:{ left:{w:'Bible study', f:'Type: a book-of-the-Bible study'}, mid:{}, right:{w:'topical study', f:'Type: a topical study (a book, video series, or curriculum on a theme)'} },
   method:{ left:{w:', worked inductively', f:'Approach: inductive / question-driven'}, mid:{}, right:{w:', guided by a teacher', f:'Approach: guided / teaching-led / curriculum'} },
-  homework:{ left:{w:'no homework', f:'Homework: none — self-contained sessions'}, mid:{w:'a little homework', f:'Homework: light reading only'}, right:{w:'weekly homework', f:'Homework: weekly readings or questions'} },
+  homework:{ left:{w:'no homework', f:'Homework: none — self-contained sessions'}, mid:{w:'a little homework', f:'Homework: light between-meeting prep'}, right:{w:'regular homework', f:'Homework: regular between-meeting prep'} },
   length:{ left:{w:'short', f:'Length: about 4–6 sessions'}, mid:{}, right:{w:'longer', f:'Length: 8–12+ sessions'} },
-  prep:{ left:{w:'and easy for facilitators to run', f:'Leader prep: open-and-go (easy to rotate)'}, mid:{}, right:{w:'that a facilitator will build out', f:'Leader prep: facilitator prepares/teaches'} },
+  prep:{ left:{w:'and easy for facilitators to run', f:'Leader prep: open-and-go (easy to rotate)'}, mid:{}, right:{w:'that the leader prepares ahead', f:'Leader prep: leader prepares ahead'} },
   level:{ left:{w:'kept accessible', f:'Level: introductory / foundational / newcomer-friendly'}, mid:{}, right:{w:'that goes deep', f:'Level: in-depth / advanced'} },
 };
 const bandOf = avg => avg<2.5 ? 'left' : (avg>3.5 ? 'right' : 'mid');
@@ -148,8 +157,16 @@ function analyze(objs){
   if(max<=0) topPurpose=null;
 
   const texts={}; TEXTS.forEach(t=>{ texts[t.key]=objs.map(o=>o[t.t]).filter(x=>x&&x.length); });
+  const hwcount={}; HOMEWORK.forEach(h=>hwcount[h.v]=0);
+  objs.forEach(o=>{ const h=HOMEWORK.find(x=>x.label===o[HOMEWORK_TITLE]); if(h)hwcount[h.v]++; });
+  let topHw=null,hmax=-1; HOMEWORK.forEach(h=>{ if(hwcount[h.v]>hmax){hmax=hwcount[h.v];topHw=h.v;} });
+  if(hmax<=0) topHw=null;
 
-  return {n, scaleAvg, scaleN, pcount, topPurpose, texts};
+  const mix={}; MIX_ROWS.forEach(r=>{ mix[r]={less:0,same:0,more:0,n:0}; });
+  objs.forEach(o=>{ MIX_ROWS.forEach(r=>{ const v=o[MIX_TITLE+' ['+r+']']; if(v==='Less'){mix[r].less++;mix[r].n++;} else if(v==='More'){mix[r].more++;mix[r].n++;} else if(v==='About the same'){mix[r].same++;mix[r].n++;} }); });
+  const cadence={}; CADENCE_OPTS.forEach(o=>cadence[o]=0); objs.forEach(o=>{ const v=o[CADENCE_TITLE]; if(cadence[v]!==undefined)cadence[v]++; });
+  const rhythmText = objs.map(o=>o[RHYTHM_TITLE]).filter(x=>x&&x.length);
+  return {n, scaleAvg, scaleN, pcount, topPurpose, texts, hwcount, topHw, mix, cadence, rhythmText};
 }
 
 function recommend(a){
@@ -159,18 +176,16 @@ function recommend(a){
   const matMap={left:'mostly exploring faith', mid:'a real mix of spiritual maturity', right:'mostly mature'};
   const capMap={left:'limited capacity right now', mid:'steady capacity', right:'high energy right now'};
   const postMap={left:'we need more encouragement and rest', mid:'we need a balance of rest and challenge', right:'we are ready to be challenged and stretched'};
-  const emphMap={left:'with the weight on understanding', mid:'holding understanding and life-change together', right:'with the weight on transformation and application'};
 
   let why=''; if(pObj) why+='Our main aim this season is to '+pObj.phrase+'. ';
   why+='We’re '+formedMap[b.formed]+', '+matMap[b.maturity]+', with '+capMap[b.capacity]+'. ';
-  why+='Right now '+postMap[b.posture]+', '+emphMap[b.emphasis]+'.';
+  why+='Right now '+postMap[b.posture]+'.';
 
   const L=[];
   if(b.capacity==='left') L.push('Capacity is limited, so lean shorter (4–6 weeks) and lighter or no homework.');
   if(b.formed==='left'||b.maturity==='left') L.push('The group is newer / still exploring, so keep it accessible and consider a guided approach over inductive.');
   if(b.posture==='left') L.push('The group needs encouragement more than a heavy grind — an encouraging study may fit better right now.');
-  if(b.posture==='right'&&b.emphasis==='right'&&b.maturity==='right') L.push('The group is ready to be stretched — inductive study, more homework, and greater depth are on the table.');
-  if(b.emphasis==='right') L.push('Because the weight is on transformation, pick a study strong on application and discussion.');
+  if(b.posture==='right'&&b.maturity==='right') L.push('The group is ready to be stretched — inductive study, more homework, and greater depth are on the table.');
   if(purpose==='literacy') L.push('For knowing the Bible better, lean toward a book of the Bible — inductive builds that skill.');
   if(purpose==='community') L.push('For deeper community, protect discussion time — lighter content or non-video helps people talk.');
   if(purpose==='outreach') L.push('For newcomers/outreach, keep it short, accessible, and low-barrier.');
@@ -181,12 +196,13 @@ function recommend(a){
   const sourceRight = b.source==='right';
   const len=BANDS.length[b.length].w||'', deliv=BANDS.delivery[b.delivery].w||'', src=BANDS.source[b.source].w||'study';
   const meth=(!sourceRight && BANDS.method[b.method].w)?BANDS.method[b.method].w:'';
-  const hw=BANDS.homework[b.homework].w||'', lvl=BANDS.level[b.level].w||'', prep=BANDS.prep[b.prep].w||'';
+  const hwBand = (a.topHw && HOMEWORK.find(h=>h.v===a.topHw)) ? HOMEWORK.find(h=>h.v===a.topHw).band : 'mid';
+  const hw=BANDS.homework[hwBand].w||'', lvl=BANDS.level[b.level].w||'', prep=BANDS.prep[b.prep].w||'';
   let fmt="The group leans toward a "+[len,deliv,src].filter(Boolean).join(' ')+meth;
   const tail=[hw,lvl,prep].filter(Boolean).join(', '); if(tail) fmt+=", with "+tail; fmt+='.';
 
   const items=[];
-  ['source','delivery','method','homework','length','prep','level'].forEach(k=>{ if(k==='method'&&sourceRight)return; const f=BANDS[k][b[k]].f; if(f)items.push(f); });
+  ['source','delivery','method','homework','length','prep','level'].forEach(k=>{ if(k==='method'&&sourceRight)return; const bnd=(k==='homework')?hwBand:b[k]; const f=BANDS[k][bnd].f; if(f)items.push(f); });
 
   return {why, leanings:L, fmt, filters:items};
 }
@@ -244,13 +260,43 @@ function render(a){
   SCALES.filter(s=>s.part===2).forEach(s=> p2.appendChild(scaleRow(s,a.scaleAvg[s.key],a.scaleN[s.key])));
   c.appendChild(p2);
 
+  const hc=el('div','card'); hc.appendChild(el('h2',null,'Homework appetite'));
+  const hwmax=Math.max(1,...HOMEWORK.map(h=>a.hwcount[h.v]));
+  HOMEWORK.forEach(h=>{
+    const row=el('div','pbar'+(h.v===a.topHw?' top':''));
+    row.appendChild(el('span','lbl','')); row.lastChild.textContent=h.label; row.lastChild.style.flex='0 0 54%'; row.lastChild.style.fontSize='13.5px';
+    const bw=el('div','barwrap'); const bb=el('div','bar'); bb.style.width=(a.hwcount[h.v]/hwmax*100)+'%'; if(a.hwcount[h.v]===0)bb.style.width='2px'; bw.appendChild(bb); row.appendChild(bw);
+    row.appendChild(el('span','cnt',String(a.hwcount[h.v])));
+    hc.appendChild(row);
+  });
+  c.appendChild(hc);
+
+  // rhythm - more or less of each
+  const rs=el('div','card'); rs.appendChild(el('h2',null,'Rhythm - more or less of each'));
+  const mixScored=MIX_ROWS.map(r=>{ const m=a.mix[r]; const sc=m.n?(m.more-m.less)/m.n:0; return {r,m,sc}; }).sort((x,y)=>y.sc-x.sc);
+  mixScored.forEach(o=>{
+    const pct=((o.sc+1)/2)*100;
+    const wrap=el('div','srow');
+    wrap.appendChild(el('div','stitle','<span>'+o.r+'</span><span class="avg">'+(o.m.n?('+'+o.m.more+' / -'+o.m.less):'no votes')+'</span>'));
+    wrap.appendChild(el('div','slabels','<span>Less</span><span>More</span>'));
+    const track=el('div','track'); track.appendChild(el('div','mid')); const mk=el('div','marker'); mk.style.left=pct+'%'; track.appendChild(mk);
+    wrap.appendChild(track); rs.appendChild(wrap);
+  });
+  c.appendChild(rs);
+
+  // study cadence
+  const cc=el('div','card'); cc.appendChild(el('h2',null,'Study cadence'));
+  const cmax=Math.max(1,...CADENCE_OPTS.map(o=>a.cadence[o]));
+  CADENCE_OPTS.forEach(o=>{ const row=el('div','pbar'); row.appendChild(el('span','lbl','')); row.lastChild.textContent=o; row.lastChild.style.flex='0 0 46%'; row.lastChild.style.fontSize='13.5px'; const bw=el('div','barwrap'); const bb=el('div','bar'); bb.style.width=(a.cadence[o]/cmax*100)+'%'; if(a.cadence[o]===0)bb.style.width='2px'; bw.appendChild(bb); row.appendChild(bw); row.appendChild(el('span','cnt',String(a.cadence[o]))); cc.appendChild(row); });
+  c.appendChild(cc);
+
   // discernment
   const dc=el('div','card'); dc.appendChild(el('h2',null,'In our own words'));
   if(a.texts.focus.length){ dc.appendChild(el('h3',null,'Focus words')); const chips=el('div'); a.texts.focus.forEach(f=>chips.appendChild(el('span','chip',f))); dc.appendChild(chips); }
   if(a.texts.topic.length){ dc.appendChild(el('h3',null,'Topics we are hungry for')); const chips=el('div'); a.texts.topic.forEach(f=>chips.appendChild(el('span','chip',f))); dc.appendChild(chips); }
-  if(a.texts.stirring.length){ dc.appendChild(el('h3',null,'What God has been stirring')); const ul=el('ul'); a.texts.stirring.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
-  if(a.texts.nudge.length){ dc.appendChild(el('h3',null,'Nudges toward / away')); const ul=el('ul'); a.texts.nudge.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
-  if(!a.texts.focus.length && !a.texts.topic.length && !a.texts.stirring.length && !a.texts.nudge.length) dc.appendChild(el('p','muted','No written responses yet.'));
+  if(a.texts.stirring.length){ dc.appendChild(el('h3',null,'What God is stirring / nudging')); const ul=el('ul'); a.texts.stirring.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
+  if(a.rhythmText.length){ dc.appendChild(el('h3',null,'Rhythm ideas')); const ul=el('ul'); a.rhythmText.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
+  if(!a.texts.focus.length && !a.texts.topic.length && !a.texts.stirring.length && !a.rhythmText.length) dc.appendChild(el('p','muted','No written responses yet.'));
   c.appendChild(dc);
 }
 
