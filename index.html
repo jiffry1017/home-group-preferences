@@ -28,13 +28,13 @@
   .mini{ font-size:11px; color:var(--muted); margin:10px 0 2px; text-transform:uppercase; letter-spacing:.05em; }
   .cwrap{ position:relative; height:224px; }
   .cwrap.tall{ height:310px; }
-  .srow{ display:flex; align-items:center; gap:12px; margin:11px 0; }
-  .srow .skey{ flex:0 0 96px; font-size:12.5px; font-weight:600; color:#2c343c; }
-  .srow .strk{ flex:1; }
-  .strk .ends{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted); margin-bottom:4px; }
+  .srow{ display:flex; align-items:center; gap:12px; margin:13px 0; }
+  .srow .skey{ flex:0 0 92px; font-size:12.5px; font-weight:600; color:#2c343c; }
+  .srow .strk{ flex:1; padding-top:7px; }
   .strk .bar{ position:relative; height:7px; background:#e8edf3; border-radius:5px; }
   .strk .bar .mid{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:#cfd8e4; }
-  .strk .bar .marker{ position:absolute; top:-4px; width:15px; height:15px; border-radius:50%; background:var(--blue); transform:translateX(-50%); box-shadow:0 1px 2px rgba(0,0,0,.25); }
+  .strk .bar .marker{ position:absolute; top:-7px; min-width:30px; height:21px; padding:0 6px; border-radius:11px; background:var(--blue); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; transform:translateX(-50%); box-shadow:0 1px 3px rgba(0,0,0,.22); }
+  .strk .ends{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted); margin-top:6px; }
   .quotes{ margin:2px 0 0; padding-left:18px; } .quotes li{ margin:8px 0; font-size:13.5px; color:#39424c; }
   .muted{ color:var(--muted); font-size:13px; }
   .setup{ background:#fff8e6; border:1px solid #f0e0a8; } .setup input{ width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
@@ -73,15 +73,15 @@ const PURPOSES = [
 const PURPOSE_TITLE = "What do you most want out of our next study?";
 
 const SCALES = [
-  {key:'formed',   k:"Group stage", t:"In your view, where is our group right now?", low:"New / Forming", high:"Established / Close", part:1},
+  {key:'formed',   k:"Group", t:"In your view, where is our group right now?", low:"New / Forming", high:"Established / Close", part:1},
   {key:'maturity', k:"Maturity", t:"How would you describe our group's spiritual maturity?", low:"Mostly Exploring", high:"Mostly Mature", part:1},
   {key:'capacity', k:"Capacity", t:"How much capacity do you have for this season?", low:"Stretched / Low", high:"Eager / High", part:1},
-  {key:'posture',  k:"Need now", t:"What do you feel you need more of right now?", low:"Encouragement / Rest", high:"Challenge / Stretch", part:1},
+  {key:'posture',  k:"Need", t:"What do you feel you need more of right now?", low:"Encouragement / Rest", high:"Challenge / Stretch", part:1},
   {key:'delivery', k:"Format", t:"What teaching format do you prefer?", low:"Video-Led", high:"Discussion", part:2},
-  {key:'source',   k:"Study type", t:"What would you rather study?", low:"Bible Book", high:"Topical", part:2},
+  {key:'source',   k:"Study Type", t:"What would you rather study?", low:"Bible Book", high:"Topical", part:2},
   {key:'method',   k:"Approach", t:"If we do a Bible study, how would you prefer to work through it?", low:"Inductive", high:"Guided", part:2},
   {key:'length',   k:"Length", t:"How long would you like the study to run?", low:"Short", high:"Long", part:2},
-  {key:'prep',     k:"Leader prep", t:"How much prep should leading the study require?", low:"Open-And-Go", high:"Needs Prep", part:2},
+  {key:'prep',     k:"Leader Prep", t:"How much prep should leading the study require?", low:"Open-And-Go", high:"Needs Prep", part:2},
   {key:'level',    k:"Depth", t:"How deep would you like the study to go?", low:"Accessible", high:"Deep", part:2},
 ];
 const HOMEWORK_TITLE = "How do you feel about homework between meetings?";
@@ -201,8 +201,10 @@ function scaleRows(containerId, scales, a){
     const avg=a.scaleAvg[s.key]; const pct=avg==null?50:((avg-1)/4)*100;
     const w=document.createElement('div'); w.className='srow';
     w.innerHTML='<div class="skey">'+esc(s.k)+'</div>'
-      +'<div class="strk"><div class="ends"><span>'+s.low+'</span><span>'+s.high+'</span></div>'
-      +'<div class="bar"><div class="mid"></div><div class="marker" style="left:'+pct+'%"></div></div></div>';
+      +'<div class="strk">'
+      +'<div class="bar"><div class="mid"></div><div class="marker" style="left:'+pct+'%">'+(avg==null?'-':avg.toFixed(1))+'</div></div>'
+      +'<div class="ends"><span>'+s.low+'</span><span>'+s.high+'</span></div>'
+      +'</div>';
     host.appendChild(w);
   });
 }
@@ -220,14 +222,14 @@ function render(a){
 
   root.className='grid';
   root.innerHTML =
-    kpi('Responses', a.n) + kpi('Top aim', pShort) + kpi('Homework appetite', hShort) + kpi('Study cadence', topCad) +
+    kpi('Responses', a.n) + kpi('Top aim', pShort) + kpi('Homework appetite', hShort) + kpi('Monthly Study Cadence', topCad) +
     '<div class="tile span8 rec"><h3>Group recommendation</h3>'
       + '<p class="lead">'+esc(rec.why)+'</p>'
       + '<p class="lead"><b>The group leans toward</b> '+esc(rec.fmt)+'</p>'
       + '<div>'+rec.leanings.slice(0,4).map(x=>'<span class="pill">'+esc(x)+'</span>').join('')+'</div></div>'
     + tile('span4','Top aim this season','<div class="cwrap"><canvas id="c_purpose"></canvas></div>')
     + tile('span4','Homework appetite','<div class="cwrap"><canvas id="c_hw"></canvas></div>')
-    + tile('span4','Study cadence','<div class="cwrap"><canvas id="c_cad"></canvas></div>')
+    + tile('span4','Monthly Study Cadence','<div class="cwrap"><canvas id="c_cad"></canvas></div>')
     + tile('span4','In our words','<div id="wordsFocus"></div>')
     + tile('span6','Where we are &amp; what we need','<div id="scales1"></div>')
     + tile('span6','The shape of the study','<div id="scales2"></div>')
