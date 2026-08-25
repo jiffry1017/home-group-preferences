@@ -75,7 +75,6 @@ const PURPOSE_TITLE = "What do you most want out of our next study?";
 const SCALES = [
   {key:'formed',   k:"Group", t:"In your view, where is our group right now?", low:"New / Forming", high:"Established / Close", part:1},
   {key:'maturity', k:"Maturity", t:"How would you describe our group's spiritual maturity?", low:"Mostly Exploring", high:"Mostly Mature", part:1},
-  {key:'capacity', k:"Capacity", t:"How much capacity do you have for this season?", low:"Stretched / Low", high:"Eager / High", part:1},
   {key:'posture',  k:"Need", t:"What do you feel you need more of right now?", low:"Encouragement / Rest", high:"Challenge / Stretch", part:1},
   {key:'delivery', k:"Format", t:"What teaching format do you prefer?", low:"Video-Led", high:"Discussion", part:2},
   {key:'source',   k:"Study Type", t:"What would you rather study?", low:"Bible Book", high:"Topical", part:2},
@@ -150,13 +149,11 @@ function recommend(a){
   const purpose=a.topPurpose; const pObj=PURPOSES.find(p=>p.v===purpose);
   const formedMap={left:'a newer, still-forming group', mid:'a group somewhere in between', right:'an established, close group'};
   const matMap={left:'mostly exploring faith', mid:'a real mix of spiritual maturity', right:'mostly mature'};
-  const capMap={left:'limited capacity right now', mid:'steady capacity', right:'high energy right now'};
   const postMap={left:'we need more encouragement and rest', mid:'we need a balance of rest and challenge', right:'we are ready to be challenged and stretched'};
   let why=''; if(pObj) why+='Our main aim this season is to '+pObj.phrase+'. ';
-  why+='We’re '+formedMap[b.formed]+', '+matMap[b.maturity]+', with '+capMap[b.capacity]+'. ';
+  why+='We’re '+formedMap[b.formed]+', '+matMap[b.maturity]+'. ';
   why+='Right now '+postMap[b.posture]+'.';
   const L=[];
-  if(b.capacity==='left') L.push('Capacity is limited — lean shorter and lighter.');
   if(b.formed==='left'||b.maturity==='left') L.push('Newer / still exploring — keep it accessible, consider guided over inductive.');
   if(b.posture==='left') L.push('More encouragement than grind right now.');
   if(b.posture==='right'&&b.maturity==='right') L.push('Ready to be stretched — inductive and deeper are on the table.');
