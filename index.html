@@ -3,170 +3,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home Group Study — Results Dashboard</title>
+<title>Home Group Preferences — Results</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root{ --blue:#1F4E79; --light:#DCE6F1; --ink:#222; --muted:#5b6470; --line:#d9dee6; --track:#e8edf3; }
+  :root{ --blue:#1F4E79; --blue2:#2E75B6; --ink:#232a31; --muted:#5b6470; --line:#e3e8ef; --bg:#eef1f5; }
   *{ box-sizing:border-box; }
-  body{ font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--ink); margin:0; background:#f4f6f9; line-height:1.5; }
-  .wrap{ max-width:820px; margin:0 auto; padding:26px 20px 70px; }
-  h1{ color:var(--blue); font-size:26px; margin:0 0 2px; }
-  .meta{ color:var(--muted); font-size:14px; margin:0 0 18px; }
-  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:16px; }
-  .card h2{ color:var(--blue); font-size:19px; margin:0 0 8px; }
-  .card h3{ color:var(--blue); font-size:14px; margin:16px 0 8px; text-transform:uppercase; letter-spacing:.05em; }
-  .rec{ background:var(--light); border:none; }
-  .sentence{ font-size:15.5px; }
-  ul{ margin:6px 0; padding-left:20px; }
-  li{ margin:6px 0; }
-  .filters b{ color:var(--blue); }
-  /* scale rows */
-  .srow{ margin:14px 0; }
-  .slabels{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-bottom:3px; }
-  .track{ position:relative; height:10px; background:var(--track); border-radius:6px; }
-  .track .mid{ position:absolute; left:50%; top:-3px; bottom:-3px; width:1px; background:#c3ccd8; }
-  .track .marker{ position:absolute; top:-4px; width:18px; height:18px; border-radius:50%; background:var(--blue); transform:translateX(-50%); box-shadow:0 1px 3px rgba(0,0,0,.25); }
-  .stitle{ display:flex; justify-content:space-between; font-size:14px; font-weight:600; }
+  body{ font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--ink); margin:0; background:var(--bg); line-height:1.45; }
+  .wrap{ max-width:1220px; margin:0 auto; padding:20px 20px 60px; }
+  header{ display:flex; align-items:center; gap:14px; margin:2px 0 16px; flex-wrap:wrap; }
+  h1{ color:var(--blue); font-size:22px; margin:0; font-weight:700; }
+  .meta{ color:var(--muted); font-size:14px; }
+  button{ font-size:13px; font-weight:600; border-radius:8px; padding:7px 14px; cursor:pointer; border:1px solid var(--blue); background:#fff; color:var(--blue); }
+  .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:14px; }
+  .tile{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 16px; box-shadow:0 1px 2px rgba(20,40,80,.05); min-width:0; }
+  .tile h3{ margin:0 0 10px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; }
+  .span12{grid-column:span 12}.span8{grid-column:span 8}.span6{grid-column:span 6}.span4{grid-column:span 4}.span3{grid-column:span 3}
+  .kpi{ display:flex; flex-direction:column; justify-content:center; }
+  .kpi .kval{ font-size:21px; font-weight:800; color:var(--blue); line-height:1.15; }
+  .kpi .klabel{ font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-top:5px; }
+  .rec{ background:linear-gradient(180deg,#f5f9fe,#ffffff); }
+  .rec .lead{ font-size:14.5px; margin:6px 0; }
+  .pill{ display:inline-block; background:#e9f1fc; color:var(--blue); border-radius:20px; padding:5px 11px; margin:5px 5px 0 0; font-size:12.5px; }
+  .chip{ display:inline-block; background:#f1f4f9; border:1px solid var(--line); border-radius:14px; padding:3px 10px; margin:3px 5px 0 0; font-size:12.5px; }
+  .mini{ font-size:11px; color:var(--muted); margin:10px 0 2px; text-transform:uppercase; letter-spacing:.05em; }
+  .cwrap{ position:relative; height:224px; }
+  .cwrap.tall{ height:310px; }
+  .srow{ margin:12px 0; }
+  .stitle{ display:flex; justify-content:space-between; font-size:13px; font-weight:600; }
   .stitle .avg{ color:var(--blue); font-weight:700; }
-  /* purpose bars */
-  .pbar{ display:flex; align-items:center; gap:10px; margin:7px 0; font-size:14px; }
-  .pbar .barwrap{ flex:1; background:var(--track); border-radius:6px; height:20px; overflow:hidden; }
-  .pbar .bar{ height:100%; background:var(--blue); border-radius:6px; }
-  .pbar .cnt{ width:34px; text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; }
-  .pbar.top .lbl{ font-weight:700; }
-  .chip{ display:inline-block; background:#eef3f9; border:1px solid var(--line); border-radius:14px; padding:3px 10px; margin:3px 4px 0 0; font-size:13px; }
-  button{ font-size:14px; font-weight:600; border-radius:9px; padding:9px 16px; cursor:pointer; border:1px solid var(--blue); background:#fff; color:var(--blue); }
-  button.primary{ background:var(--blue); color:#fff; }
-  .setup{ background:#fff8e6; border:1px solid #f0e0a8; }
-  .setup code{ background:#fbecc4; padding:1px 5px; border-radius:4px; }
-  input[type=text]{ width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
+  .slabels{ display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin:2px 0 4px; }
+  .track{ position:relative; height:8px; background:#e8edf3; border-radius:5px; }
+  .track .mid{ position:absolute; left:50%; top:-3px; bottom:-3px; width:1px; background:#cfd8e4; }
+  .track .marker{ position:absolute; top:-4px; width:16px; height:16px; border-radius:50%; background:var(--blue); transform:translateX(-50%); box-shadow:0 1px 2px rgba(0,0,0,.25); }
+  .quotes{ margin:2px 0 0; padding-left:18px; } .quotes li{ margin:8px 0; font-size:13.5px; color:#39424c; }
   .muted{ color:var(--muted); font-size:13px; }
-  a{ color:var(--blue); }
+  .setup{ background:#fff8e6; border:1px solid #f0e0a8; } .setup input{ width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
+  @media(max-width:900px){ .span8,.span6,.span4{grid-column:span 12} .span3{grid-column:span 6} .rec{order:-1} }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Home Group Study — Results</h1>
-  <p class="meta"><span id="count">Loading…</span> &nbsp;·&nbsp; <button onclick="load()">Reload</button></p>
-
-  <div class="card setup" id="setup" style="display:none;">
-    <h2>One-time setup</h2>
-    <p class="muted">Paste your published-CSV link from the responses sheet (File → Share → Publish to web → the responses tab → CSV). It's remembered in this browser.</p>
-    <input type="text" id="csvInput" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv">
-    <p style="margin-top:10px;"><button class="primary" onclick="saveUrl()">Save & load</button></p>
+  <header>
+    <h1>Home Group Preferences</h1>
+    <span class="meta" id="count">Loading…</span>
+    <button onclick="load()">Reload</button>
+  </header>
+  <div class="tile setup" id="setup" style="display:none;">
+    <h3>One-time setup</h3>
+    <p class="muted">Paste the published-CSV link from the responses sheet, then Save.</p>
+    <input type="text" id="csvInput" placeholder="https://docs.google.com/…/pub?output=csv">
+    <p style="margin-top:10px;"><button onclick="saveUrl()">Save &amp; load</button></p>
   </div>
-
   <div id="content"></div>
 </div>
 
 <script>
 // ============ CONFIG ============
-// Paste your published CSV URL here (or leave blank and use the on-page box).
 const CONFIG = { csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vSwZxXxHYGzhdsNhLfUxIj4I2OuObifYMRmgwN_WWeMCN7hiMNH0eDeGBnfVBp2lAHVrny3kJ4MW2Kd/pub?gid=4980473&single=true&output=csv" };
 // ================================
 
 const PURPOSES = [
-    {v:'grow',      label:"Grow Spiritually / Go Deeper With God", phrase:'grow spiritually and go deeper with God'},
-    {v:'community', label:"Build Deeper Community & Relationships", phrase:'build deeper community and relationships'},
-    {v:'literacy',  label:"Know The Bible Better", phrase:'grow in knowing the Bible'},
-    {v:'apply',     label:"Live Out My Faith Day To Day", phrase:'grow in living out our faith'},
-    {v:'outreach',  label:"Make Room For Newcomers / Outreach", phrase:'make room for newcomers and outreach'},
-    {v:'restore',   label:"Be Encouraged & Restored This Season", phrase:'find encouragement and restoration'},
-  ];
+  {v:'grow',      label:"Grow Spiritually / Go Deeper With God", short:"Grow / go deeper", phrase:'grow spiritually and go deeper with God'},
+  {v:'community', label:"Build Deeper Community & Relationships", short:"Community", phrase:'build deeper community and relationships'},
+  {v:'literacy',  label:"Know The Bible Better", short:"Know the Bible", phrase:'grow in knowing the Bible'},
+  {v:'apply',     label:"Live Out My Faith Day To Day", short:"Live it out", phrase:'grow in living out our faith'},
+  {v:'outreach',  label:"Make Room For Newcomers / Outreach", short:"Outreach", phrase:'make room for newcomers and outreach'},
+  {v:'restore',   label:"Be Encouraged & Restored This Season", short:"Restored", phrase:'find encouragement and restoration'},
+];
 const PURPOSE_TITLE = "What do you most want out of our next study?";
 
-// key -> exact form question title, plus pole labels + which section
 const SCALES = [
-    {key:'formed',   t:"In your view, where is our group right now?", low:"New / Forming", high:"Established / Close", part:1},
-    {key:'maturity', t:"How would you describe our group's spiritual maturity?", low:"Mostly Exploring", high:"Mostly Mature", part:1},
-    {key:'capacity', t:"How much capacity do you have for this season?", low:"Stretched / Low", high:"Eager / High", part:1},
-    {key:'posture',  t:"What do you feel you need more of right now?", low:"Encouragement / Rest", high:"Challenge / Stretch", part:1},
-    {key:'delivery', t:"What teaching format do you prefer?", low:"Video-Led", high:"Discussion", part:2},
-    {key:'source',   t:"What would you rather study?", low:"Bible Book", high:"Topical", part:2},
-    {key:'method',   t:"If we do a Bible study, how would you prefer to work through it?", low:"Inductive", high:"Guided", part:2},
-    {key:'length',   t:"How long would you like the study to run?", low:"Short", high:"Long", part:2},
-    {key:'prep',     t:"How much prep should leading the study require?", low:"Open-And-Go", high:"Needs Prep", part:2},
-    {key:'level',    t:"How deep would you like the study to go?", low:"Accessible", high:"Deep", part:2},
-  ];
-  const HOMEWORK_TITLE = "How do you feel about homework between meetings?";
-  const HOMEWORK = [
-    {v:'none',   label:"Prefer none - I'll engage fully in the meeting", band:'left'},
-    {v:'light',  label:"Light only - a short reading (10-15 min)", band:'mid'},
-    {v:'weekly', label:"Happy to prep weekly - readings and questions", band:'right'},
-    {v:'deep',   label:"I want to go deep - the more the better", band:'right'},
-  ];
-  const MIX_TITLE = "For this year, would you like more or less of each?";
-  const MIX_ROWS = ["Bible or book studies","Sharing & prayer nights","Testimonies","Men's / Women's pods","Fun hangouts (BBQ, games, meals)","Worship & prayer nights","Serving / outreach together","Joint events with other groups"];
-  const CADENCE_TITLE = "In a typical month, how many of our gatherings would you like to be a study?";
-  const CADENCE_OPTS = ["Most weeks","About half","Once or twice","No strong preference"];
-  const RHYTHM_TITLE = "Anything else you'd like to include this year?";
+  {key:'formed',   t:"In your view, where is our group right now?", low:"New / Forming", high:"Established / Close", part:1},
+  {key:'maturity', t:"How would you describe our group's spiritual maturity?", low:"Mostly Exploring", high:"Mostly Mature", part:1},
+  {key:'capacity', t:"How much capacity do you have for this season?", low:"Stretched / Low", high:"Eager / High", part:1},
+  {key:'posture',  t:"What do you feel you need more of right now?", low:"Encouragement / Rest", high:"Challenge / Stretch", part:1},
+  {key:'delivery', t:"What teaching format do you prefer?", low:"Video-Led", high:"Discussion", part:2},
+  {key:'source',   t:"What would you rather study?", low:"Bible Book", high:"Topical", part:2},
+  {key:'method',   t:"If we do a Bible study, how would you prefer to work through it?", low:"Inductive", high:"Guided", part:2},
+  {key:'length',   t:"How long would you like the study to run?", low:"Short", high:"Long", part:2},
+  {key:'prep',     t:"How much prep should leading the study require?", low:"Open-And-Go", high:"Needs Prep", part:2},
+  {key:'level',    t:"How deep would you like the study to go?", low:"Accessible", high:"Deep", part:2},
+];
+const HOMEWORK_TITLE = "How do you feel about homework between meetings?";
+const HOMEWORK = [
+  {v:'none',   label:"Prefer none - I'll engage fully in the meeting", short:"None", band:'left'},
+  {v:'light',  label:"Light only - a short reading (10-15 min)", short:"Light", band:'mid'},
+  {v:'weekly', label:"Happy to prep weekly - readings and questions", short:"Weekly", band:'right'},
+  {v:'deep',   label:"I want to go deep - the more the better", short:"Go deep", band:'right'},
+];
+const MIX_TITLE = "For this year, would you like more or less of each?";
+const MIX_ROWS = ["Bible or book studies","Sharing & prayer nights","Testimonies","Men's / Women's pods","Fun hangouts (BBQ, games, meals)","Worship & prayer nights","Serving / outreach together","Joint events with other groups"];
+const CADENCE_TITLE = "In a typical month, how many of our gatherings would you like to be a study?";
+const CADENCE_OPTS = ["Most weeks","About half","Once or twice","No strong preference"];
+const RHYTHM_TITLE = "Anything else you'd like to include this year?";
 const TEXTS = [
-    {key:'stirring', t:"What has God been stirring in you lately?"},
-    {key:'focus',    t:"If this season had one focus word for you, what would it be?"},
-    {key:'topic',    t:"Is there a topic or theme you'd like us to study?"},
-  ];
+  {key:'stirring', t:"What has God been stirring in you lately?"},
+  {key:'focus',    t:"If this season had one focus word for you, what would it be?"},
+  {key:'topic',    t:"Is there a topic or theme you'd like us to study?"},
+];
 
 const BANDS = {
-  delivery:{ left:{w:'video-led', f:'Format: video series (look for an included discussion guide)'}, mid:{}, right:{w:'discussion-based', f:'Format: discussion / reading — no video needed'} },
-  source:{ left:{w:'Bible study', f:'Type: a book-of-the-Bible study'}, mid:{}, right:{w:'topical study', f:'Type: a topical study (a book, video series, or curriculum on a theme)'} },
-  method:{ left:{w:', worked inductively', f:'Approach: inductive / question-driven'}, mid:{}, right:{w:', guided by a teacher', f:'Approach: guided / teaching-led / curriculum'} },
-  homework:{ left:{w:'no homework', f:'Homework: none — self-contained sessions'}, mid:{w:'a little homework', f:'Homework: light between-meeting prep'}, right:{w:'regular homework', f:'Homework: regular between-meeting prep'} },
-  length:{ left:{w:'short', f:'Length: about 4–6 sessions'}, mid:{}, right:{w:'longer', f:'Length: 8–12+ sessions'} },
-  prep:{ left:{w:'and easy for facilitators to run', f:'Leader prep: open-and-go (easy to rotate)'}, mid:{}, right:{w:'that the leader prepares ahead', f:'Leader prep: leader prepares ahead'} },
-  level:{ left:{w:'kept accessible', f:'Level: introductory / foundational / newcomer-friendly'}, mid:{}, right:{w:'that goes deep', f:'Level: in-depth / advanced'} },
+  delivery:{ left:{w:'video-led', f:'Format: video series (with a discussion guide)'}, mid:{}, right:{w:'discussion-based', f:'Format: discussion / reading, no video needed'} },
+  source:{ left:{w:'Bible study', f:'Type: a book-of-the-Bible study'}, mid:{}, right:{w:'topical study', f:'Type: a topical study (book, video, or curriculum)'} },
+  method:{ left:{w:', worked inductively', f:'Approach: inductive / question-driven'}, mid:{}, right:{w:', guided by a teacher', f:'Approach: guided / teaching-led'} },
+  homework:{ left:{w:'no homework', f:'Homework: none, self-contained sessions'}, mid:{w:'a little homework', f:'Homework: light between-meeting prep'}, right:{w:'regular homework', f:'Homework: regular between-meeting prep'} },
+  length:{ left:{w:'short', f:'Length: about 4-6 sessions'}, mid:{}, right:{w:'longer', f:'Length: 8-12+ sessions'} },
+  prep:{ left:{w:'and easy for facilitators to run', f:'Leader prep: open-and-go'}, mid:{}, right:{w:'that the leader prepares ahead', f:'Leader prep: leader prepares ahead'} },
+  level:{ left:{w:'kept accessible', f:'Level: introductory / foundational'}, mid:{}, right:{w:'that goes deep', f:'Level: in-depth / advanced'} },
 };
 const bandOf = avg => avg<2.5 ? 'left' : (avg>3.5 ? 'right' : 'mid');
+const PALETTE = ['#1F4E79','#2E75B6','#5B9BD5','#8FAADC','#BDD7EE','#c7ccd3'];
 
 // ---------- CSV ----------
 function parseCSV(text){
   const rows=[]; let row=[], field='', q=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i];
-    if(q){
-      if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; }
-      else field+=c;
-    } else {
-      if(c==='"') q=true;
-      else if(c===','){ row.push(field); field=''; }
-      else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
-      else if(c==='\r'){ }
-      else field+=c;
-    }
+  for(let i=0;i<text.length;i++){ const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){field+='"';i++;} else q=false; } else field+=c; }
+    else { if(c==='"') q=true; else if(c===','){ row.push(field); field=''; } else if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; } else if(c==='\r'){} else field+=c; }
   }
   if(field.length||row.length){ row.push(field); rows.push(row); }
   return rows.filter(r=>r.length && r.some(x=>x!==''));
 }
-function toObjects(rows){
-  if(!rows.length) return [];
-  const head=rows[0]; const out=[];
-  for(let i=1;i<rows.length;i++){ const o={}; head.forEach((h,j)=>o[h.trim()]=(rows[i][j]||'').trim()); out.push(o); }
-  return out;
-}
+function toObjects(rows){ if(!rows.length) return []; const head=rows[0]; const out=[]; for(let i=1;i<rows.length;i++){ const o={}; head.forEach((h,j)=>o[(''+h).trim()]=(rows[i][j]||'').trim()); out.push(o); } return out; }
 
-// ---------- aggregate + recommend ----------
+// ---------- aggregate ----------
 function analyze(objs){
   const n=objs.length;
-  const scaleAvg={}, scaleN={};
-  SCALES.forEach(s=>{
-    const vals=objs.map(o=>parseFloat(o[s.t])).filter(v=>!isNaN(v));
-    scaleN[s.key]=vals.length;
-    scaleAvg[s.key]= vals.length? vals.reduce((a,b)=>a+b,0)/vals.length : null;
-  });
+  const scaleAvg={},scaleN={};
+  SCALES.forEach(s=>{ const vals=objs.map(o=>parseFloat(o[s.t])).filter(v=>!isNaN(v)); scaleN[s.key]=vals.length; scaleAvg[s.key]=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null; });
   const pcount={}; PURPOSES.forEach(p=>pcount[p.v]=0);
-  objs.forEach(o=>{ const lbl=o[PURPOSE_TITLE]; const p=PURPOSES.find(x=>x.label===lbl); if(p)pcount[p.v]++; });
-  let topPurpose=null,max=-1; PURPOSES.forEach(p=>{ if(pcount[p.v]>max){max=pcount[p.v];topPurpose=p.v;} });
-  if(max<=0) topPurpose=null;
-
-  const texts={}; TEXTS.forEach(t=>{ texts[t.key]=objs.map(o=>o[t.t]).filter(x=>x&&x.length); });
+  objs.forEach(o=>{ const p=PURPOSES.find(x=>x.label===o[PURPOSE_TITLE]); if(p)pcount[p.v]++; });
+  let topPurpose=null,pmax=-1; PURPOSES.forEach(p=>{ if(pcount[p.v]>pmax){pmax=pcount[p.v];topPurpose=p.v;} }); if(pmax<=0)topPurpose=null;
   const hwcount={}; HOMEWORK.forEach(h=>hwcount[h.v]=0);
   objs.forEach(o=>{ const h=HOMEWORK.find(x=>x.label===o[HOMEWORK_TITLE]); if(h)hwcount[h.v]++; });
-  let topHw=null,hmax=-1; HOMEWORK.forEach(h=>{ if(hwcount[h.v]>hmax){hmax=hwcount[h.v];topHw=h.v;} });
-  if(hmax<=0) topHw=null;
-
-  const mix={}; MIX_ROWS.forEach(r=>{ mix[r]={less:0,same:0,more:0,n:0}; });
+  let topHw=null,hmax=-1; HOMEWORK.forEach(h=>{ if(hwcount[h.v]>hmax){hmax=hwcount[h.v];topHw=h.v;} }); if(hmax<=0)topHw=null;
+  const mix={}; MIX_ROWS.forEach(r=>mix[r]={less:0,same:0,more:0,n:0});
   objs.forEach(o=>{ MIX_ROWS.forEach(r=>{ const v=o[MIX_TITLE+' ['+r+']']; if(v==='Less'){mix[r].less++;mix[r].n++;} else if(v==='More'){mix[r].more++;mix[r].n++;} else if(v==='About the same'){mix[r].same++;mix[r].n++;} }); });
   const cadence={}; CADENCE_OPTS.forEach(o=>cadence[o]=0); objs.forEach(o=>{ const v=o[CADENCE_TITLE]; if(cadence[v]!==undefined)cadence[v]++; });
-  const rhythmText = objs.map(o=>o[RHYTHM_TITLE]).filter(x=>x&&x.length);
-  return {n, scaleAvg, scaleN, pcount, topPurpose, texts, hwcount, topHw, mix, cadence, rhythmText};
+  const texts={}; TEXTS.forEach(t=>texts[t.key]=objs.map(o=>o[t.t]).filter(x=>x&&x.length));
+  const rhythmText=objs.map(o=>o[RHYTHM_TITLE]).filter(x=>x&&x.length);
+  return {n,scaleAvg,scaleN,pcount,topPurpose,hwcount,topHw,mix,cadence,texts,rhythmText};
 }
 
 function recommend(a){
@@ -176,133 +152,115 @@ function recommend(a){
   const matMap={left:'mostly exploring faith', mid:'a real mix of spiritual maturity', right:'mostly mature'};
   const capMap={left:'limited capacity right now', mid:'steady capacity', right:'high energy right now'};
   const postMap={left:'we need more encouragement and rest', mid:'we need a balance of rest and challenge', right:'we are ready to be challenged and stretched'};
-
   let why=''; if(pObj) why+='Our main aim this season is to '+pObj.phrase+'. ';
   why+='We’re '+formedMap[b.formed]+', '+matMap[b.maturity]+', with '+capMap[b.capacity]+'. ';
   why+='Right now '+postMap[b.posture]+'.';
-
   const L=[];
-  if(b.capacity==='left') L.push('Capacity is limited, so lean shorter (4–6 weeks) and lighter or no homework.');
-  if(b.formed==='left'||b.maturity==='left') L.push('The group is newer / still exploring, so keep it accessible and consider a guided approach over inductive.');
-  if(b.posture==='left') L.push('The group needs encouragement more than a heavy grind — an encouraging study may fit better right now.');
-  if(b.posture==='right'&&b.maturity==='right') L.push('The group is ready to be stretched — inductive study, more homework, and greater depth are on the table.');
-  if(purpose==='literacy') L.push('For knowing the Bible better, lean toward a book of the Bible — inductive builds that skill.');
-  if(purpose==='community') L.push('For deeper community, protect discussion time — lighter content or non-video helps people talk.');
-  if(purpose==='outreach') L.push('For newcomers/outreach, keep it short, accessible, and low-barrier.');
-  if(purpose==='restore') L.push('For a restorative season, an encouraging topical book with light homework fits.');
-  if(purpose==='apply') L.push('To live it out, choose a study with strong application questions and real discussion.');
-  if(purpose==='grow') L.push('For going deeper with God, build in space for prayer and reflection, not just content.');
-
-  const sourceRight = b.source==='right';
+  if(b.capacity==='left') L.push('Capacity is limited — lean shorter and lighter.');
+  if(b.formed==='left'||b.maturity==='left') L.push('Newer / still exploring — keep it accessible, consider guided over inductive.');
+  if(b.posture==='left') L.push('More encouragement than grind right now.');
+  if(b.posture==='right'&&b.maturity==='right') L.push('Ready to be stretched — inductive and deeper are on the table.');
+  if(purpose==='literacy') L.push('For knowing the Bible, lean toward a book of the Bible.');
+  if(purpose==='community') L.push('For community, protect discussion time.');
+  if(purpose==='outreach') L.push('For outreach, keep it short and low-barrier.');
+  if(purpose==='restore') L.push('For a restorative season, an encouraging study with light homework fits.');
+  if(purpose==='apply') L.push('To live it out, prioritise application and discussion.');
+  if(purpose==='grow') L.push('For going deeper, build in space for prayer and reflection.');
+  const sourceRight=b.source==='right';
+  const hwBand=(a.topHw && HOMEWORK.find(h=>h.v===a.topHw))?HOMEWORK.find(h=>h.v===a.topHw).band:'mid';
   const len=BANDS.length[b.length].w||'', deliv=BANDS.delivery[b.delivery].w||'', src=BANDS.source[b.source].w||'study';
   const meth=(!sourceRight && BANDS.method[b.method].w)?BANDS.method[b.method].w:'';
-  const hwBand = (a.topHw && HOMEWORK.find(h=>h.v===a.topHw)) ? HOMEWORK.find(h=>h.v===a.topHw).band : 'mid';
   const hw=BANDS.homework[hwBand].w||'', lvl=BANDS.level[b.level].w||'', prep=BANDS.prep[b.prep].w||'';
-  let fmt="The group leans toward a "+[len,deliv,src].filter(Boolean).join(' ')+meth;
+  let fmt="a "+[len,deliv,src].filter(Boolean).join(' ')+meth;
   const tail=[hw,lvl,prep].filter(Boolean).join(', '); if(tail) fmt+=", with "+tail; fmt+='.';
-
-  const items=[];
-  ['source','delivery','method','homework','length','prep','level'].forEach(k=>{ if(k==='method'&&sourceRight)return; const bnd=(k==='homework')?hwBand:b[k]; const f=BANDS[k][bnd].f; if(f)items.push(f); });
-
-  return {why, leanings:L, fmt, filters:items};
+  return {why, leanings:L, fmt};
 }
 
 // ---------- render ----------
-function el(tag, cls, html){ const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
-
-function scaleRow(s, avg, n){
-  const pct = avg==null? 50 : ((avg-1)/4)*100;
-  const wrap=el('div','srow');
-  wrap.appendChild(el('div','stitle','<span>'+s.t+'</span><span class="avg">'+(avg==null?'—':avg.toFixed(1))+'</span>'));
-  wrap.appendChild(el('div','slabels','<span>'+s.low+'</span><span>'+s.high+'</span>'));
-  const track=el('div','track'); track.appendChild(el('div','mid')); const m=el('div','marker'); m.style.left=pct+'%'; track.appendChild(m);
-  wrap.appendChild(track);
-  return wrap;
+let CHARTS=[];
+function esc(s){ return (''+s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function doughnut(id, labels, data){
+  if(typeof Chart==='undefined') return null;
+  return new Chart(document.getElementById(id), { type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:PALETTE, borderColor:'#fff', borderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{ position:'bottom', labels:{ boxWidth:11, boxHeight:11, font:{size:11}, padding:8 } } } } });
+}
+function divergingBar(id, labels, data){
+  if(typeof Chart==='undefined') return null;
+  const maxAbs=Math.max(1,...data.map(v=>Math.abs(v)));
+  return new Chart(document.getElementById(id), { type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:data.map(v=>v>=0?'#2E75B6':'#E0A458'), borderRadius:4, barPercentage:0.72 }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>{ const v=c.raw; return v>0?('+'+v+' net more'):(v<0?(v+' net less'):'even'); } } } },
+      scales:{ x:{ min:-maxAbs, max:maxAbs, ticks:{ stepSize:1, font:{size:10} }, grid:{ color:'#eef1f5' } }, y:{ ticks:{ font:{size:11.5} }, grid:{ display:false } } } } });
+}
+function scaleRows(containerId, scales, a){
+  const host=document.getElementById(containerId);
+  scales.forEach(s=>{
+    const avg=a.scaleAvg[s.key]; const pct = avg==null? 50 : ((avg-1)/4)*100;
+    const w=document.createElement('div'); w.className='srow';
+    w.innerHTML = '<div class="stitle"><span>'+esc(s.t.replace(/\?$/,''))+'</span><span class="avg">'+(avg==null?'—':avg.toFixed(1))+'</span></div>'
+      + '<div class="slabels"><span>'+s.low+'</span><span>'+s.high+'</span></div>'
+      + '<div class="track"><div class="mid"></div><div class="marker" style="left:'+pct+'%"></div></div>';
+    host.appendChild(w);
+  });
 }
 
 function render(a){
-  const c=document.getElementById('content'); c.innerHTML='';
+  CHARTS.forEach(c=>{ if(c){ try{c.destroy();}catch(e){} } }); CHARTS=[];
+  const root=document.getElementById('content');
   document.getElementById('count').textContent = a.n + (a.n===1?' response':' responses');
-  if(a.n===0){ c.appendChild(el('div','card','<p>No responses yet. Share the form link, then hit Reload.</p>')); return; }
+  if(a.n===0){ root.className=''; root.innerHTML='<div class="tile"><p class="muted">No responses yet. Share the form link, then hit Reload.</p></div>'; return; }
 
   const rec=recommend(a);
+  const pShort = a.topPurpose? (PURPOSES.find(p=>p.v===a.topPurpose)||{}).short : '—';
+  const hShort = a.topHw? (HOMEWORK.find(h=>h.v===a.topHw)||{}).short : '—';
+  let topCad='—',cmax=-1; CADENCE_OPTS.forEach(o=>{ if(a.cadence[o]>cmax){cmax=a.cadence[o];topCad=o;} }); if(cmax<=0)topCad='—';
 
-  // recommendation
-  const rc=el('div','card rec');
-  rc.appendChild(el('h2',null,'Group recommendation'));
-  rc.appendChild(el('p','sentence','<b>Our why:</b> '+rec.why));
-  rc.appendChild(el('p','sentence','<b>Format the group leans toward:</b> '+rec.fmt));
-  rc.appendChild(el('h3',null,'Suggested leanings'));
-  const lu=el('ul'); (rec.leanings.length?rec.leanings:['—']).forEach(t=>lu.appendChild(el('li',null,t))); rc.appendChild(lu);
-  rc.appendChild(el('h3',null,'What to look for'));
-  const fu=el('ul','filters'); (rec.filters.length?rec.filters:['—']).forEach(t=>{const i=t.indexOf(':');fu.appendChild(el('li',null,i>-1?'<b>'+t.slice(0,i)+'</b>'+t.slice(i):t));}); rc.appendChild(fu);
-  c.appendChild(rc);
+  root.className='grid';
+  root.innerHTML =
+    kpi('Responses', a.n) + kpi('Top aim', pShort) + kpi('Homework', hShort) + kpi('Cadence', topCad) +
+    '<div class="tile span8 rec"><h3>Group recommendation</h3>'
+      + '<p class="lead">'+esc(rec.why)+'</p>'
+      + '<p class="lead"><b>The group leans toward</b> '+esc(rec.fmt)+'</p>'
+      + '<div>'+rec.leanings.slice(0,4).map(x=>'<span class="pill">'+esc(x)+'</span>').join('')+'</div></div>'
+    + tile('span4','Top aim this season','<div class="cwrap"><canvas id="c_purpose"></canvas></div>')
+    + tile('span4','Homework appetite','<div class="cwrap"><canvas id="c_hw"></canvas></div>')
+    + tile('span4','Study cadence','<div class="cwrap"><canvas id="c_cad"></canvas></div>')
+    + tile('span4','In our words','<div id="wordsFocus"></div>')
+    + tile('span6','Where we are &amp; what we need','<div id="scales1"></div>')
+    + tile('span6','The shape of the study','<div id="scales2"></div>')
+    + tile('span8','More or less of each, this year','<div class="cwrap tall"><canvas id="c_mix"></canvas></div>')
+    + tile('span4','What God is stirring &amp; ideas','<div id="quotes"></div>');
 
-  // purpose
-  const pc=el('div','card'); pc.appendChild(el('h2',null,'Top aim this season'));
-  const maxc=Math.max(1,...PURPOSES.map(p=>a.pcount[p.v]));
-  PURPOSES.forEach(p=>{
-    const row=el('div','pbar'+(p.v===a.topPurpose?' top':''));
-    row.appendChild(el('span','lbl','',)); row.lastChild.textContent=p.label; row.lastChild.style.flex='0 0 46%'; row.lastChild.style.fontSize='13.5px';
-    const bw=el('div','barwrap'); const b=el('div','bar'); b.style.width=(a.pcount[p.v]/maxc*100)+'%'; if(a.pcount[p.v]===0)b.style.width='2px'; bw.appendChild(b); row.appendChild(bw);
-    row.appendChild(el('span','cnt',String(a.pcount[p.v])));
-    pc.appendChild(row);
-  });
-  c.appendChild(pc);
+  CHARTS.push(doughnut('c_purpose', PURPOSES.map(p=>p.short), PURPOSES.map(p=>a.pcount[p.v])));
+  CHARTS.push(doughnut('c_hw', HOMEWORK.map(h=>h.short), HOMEWORK.map(h=>a.hwcount[h.v])));
+  CHARTS.push(doughnut('c_cad', CADENCE_OPTS, CADENCE_OPTS.map(o=>a.cadence[o])));
 
-  // part 1 scales
-  const p1=el('div','card'); p1.appendChild(el('h2',null,'Why — what we need this season (averages)'));
-  SCALES.filter(s=>s.part===1).forEach(s=> p1.appendChild(scaleRow(s,a.scaleAvg[s.key],a.scaleN[s.key])));
-  c.appendChild(p1);
+  scaleRows('scales1', SCALES.filter(s=>s.part===1), a);
+  scaleRows('scales2', SCALES.filter(s=>s.part===2), a);
 
-  // part 2 scales
-  const p2=el('div','card'); p2.appendChild(el('h2',null,'How — the shape of the study (averages)'));
-  SCALES.filter(s=>s.part===2).forEach(s=> p2.appendChild(scaleRow(s,a.scaleAvg[s.key],a.scaleN[s.key])));
-  c.appendChild(p2);
+  const mixArr=MIX_ROWS.map(r=>({r, net:a.mix[r].more - a.mix[r].less})).sort((x,y)=>y.net-x.net);
+  CHARTS.push(divergingBar('c_mix', mixArr.map(x=>x.r), mixArr.map(x=>x.net)));
 
-  const hc=el('div','card'); hc.appendChild(el('h2',null,'Homework appetite'));
-  const hwmax=Math.max(1,...HOMEWORK.map(h=>a.hwcount[h.v]));
-  HOMEWORK.forEach(h=>{
-    const row=el('div','pbar'+(h.v===a.topHw?' top':''));
-    row.appendChild(el('span','lbl','')); row.lastChild.textContent=h.label; row.lastChild.style.flex='0 0 54%'; row.lastChild.style.fontSize='13.5px';
-    const bw=el('div','barwrap'); const bb=el('div','bar'); bb.style.width=(a.hwcount[h.v]/hwmax*100)+'%'; if(a.hwcount[h.v]===0)bb.style.width='2px'; bw.appendChild(bb); row.appendChild(bw);
-    row.appendChild(el('span','cnt',String(a.hwcount[h.v])));
-    hc.appendChild(row);
-  });
-  c.appendChild(hc);
+  const wf=document.getElementById('wordsFocus');
+  let wh='';
+  if(a.texts.focus.length) wh+='<div class="mini">Focus words</div><div>'+a.texts.focus.map(f=>'<span class="chip">'+esc(f)+'</span>').join('')+'</div>';
+  if(a.texts.topic.length) wh+='<div class="mini">Topics wanted</div><div>'+a.texts.topic.map(f=>'<span class="chip">'+esc(f)+'</span>').join('')+'</div>';
+  wf.innerHTML = wh || '<p class="muted">No words yet.</p>';
 
-  // rhythm - more or less of each
-  const rs=el('div','card'); rs.appendChild(el('h2',null,'Rhythm - more or less of each'));
-  const mixScored=MIX_ROWS.map(r=>{ const m=a.mix[r]; const sc=m.n?(m.more-m.less)/m.n:0; return {r,m,sc}; }).sort((x,y)=>y.sc-x.sc);
-  mixScored.forEach(o=>{
-    const pct=((o.sc+1)/2)*100;
-    const wrap=el('div','srow');
-    wrap.appendChild(el('div','stitle','<span>'+o.r+'</span><span class="avg">'+(o.m.n?('+'+o.m.more+' / -'+o.m.less):'no votes')+'</span>'));
-    wrap.appendChild(el('div','slabels','<span>Less</span><span>More</span>'));
-    const track=el('div','track'); track.appendChild(el('div','mid')); const mk=el('div','marker'); mk.style.left=pct+'%'; track.appendChild(mk);
-    wrap.appendChild(track); rs.appendChild(wrap);
-  });
-  c.appendChild(rs);
-
-  // study cadence
-  const cc=el('div','card'); cc.appendChild(el('h2',null,'Study cadence'));
-  const cmax=Math.max(1,...CADENCE_OPTS.map(o=>a.cadence[o]));
-  CADENCE_OPTS.forEach(o=>{ const row=el('div','pbar'); row.appendChild(el('span','lbl','')); row.lastChild.textContent=o; row.lastChild.style.flex='0 0 46%'; row.lastChild.style.fontSize='13.5px'; const bw=el('div','barwrap'); const bb=el('div','bar'); bb.style.width=(a.cadence[o]/cmax*100)+'%'; if(a.cadence[o]===0)bb.style.width='2px'; bw.appendChild(bb); row.appendChild(bw); row.appendChild(el('span','cnt',String(a.cadence[o]))); cc.appendChild(row); });
-  c.appendChild(cc);
-
-  // discernment
-  const dc=el('div','card'); dc.appendChild(el('h2',null,'In our own words'));
-  if(a.texts.focus.length){ dc.appendChild(el('h3',null,'Focus words')); const chips=el('div'); a.texts.focus.forEach(f=>chips.appendChild(el('span','chip',f))); dc.appendChild(chips); }
-  if(a.texts.topic.length){ dc.appendChild(el('h3',null,'Topics we are hungry for')); const chips=el('div'); a.texts.topic.forEach(f=>chips.appendChild(el('span','chip',f))); dc.appendChild(chips); }
-  if(a.texts.stirring.length){ dc.appendChild(el('h3',null,'What God is stirring / nudging')); const ul=el('ul'); a.texts.stirring.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
-  if(a.rhythmText.length){ dc.appendChild(el('h3',null,'Rhythm ideas')); const ul=el('ul'); a.rhythmText.forEach(t=>ul.appendChild(el('li',null,t))); dc.appendChild(ul); }
-  if(!a.texts.focus.length && !a.texts.topic.length && !a.texts.stirring.length && !a.rhythmText.length) dc.appendChild(el('p','muted','No written responses yet.'));
-  c.appendChild(dc);
+  const q=document.getElementById('quotes'); const items=[];
+  a.texts.stirring.forEach(t=>items.push('“'+esc(t)+'”'));
+  a.rhythmText.forEach(t=>items.push(esc(t)));
+  q.innerHTML = items.length? '<ul class="quotes">'+items.map(x=>'<li>'+x+'</li>').join('')+'</ul>' : '<p class="muted">No written responses yet.</p>';
 }
+function kpi(label,val){ return '<div class="tile span3 kpi"><div class="kval">'+esc(val)+'</div><div class="klabel">'+label+'</div></div>'; }
+function tile(span,title,inner){ return '<div class="tile '+span+'"><h3>'+title+'</h3>'+inner+'</div>'; }
 
 // ---------- load ----------
-function csvUrl(){ return CONFIG.csvUrl || localStorage.getItem('hgsp_csv') || ''; }
-function saveUrl(){ const v=document.getElementById('csvInput').value.trim(); if(v){ localStorage.setItem('hgsp_csv',v); load(); } }
+function csvUrl(){ return CONFIG.csvUrl || localStorage.getItem('hgp_csv') || ''; }
+function saveUrl(){ const v=document.getElementById('csvInput').value.trim(); if(v){ localStorage.setItem('hgp_csv',v); load(); } }
 function load(){
   const url=csvUrl();
   if(!url){ document.getElementById('setup').style.display='block'; document.getElementById('count').textContent='Not configured'; return; }
@@ -311,7 +269,7 @@ function load(){
   fetch(url + (url.indexOf('?')>-1?'&':'?') + 'cb=' + Date.now())
     .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
     .then(txt=> render(analyze(toObjects(parseCSV(txt)))) )
-    .catch(e=>{ document.getElementById('count').textContent='Could not load data'; document.getElementById('content').innerHTML='<div class="card"><p>Couldn\'t read the responses ('+e.message+'). Check that the sheet is published to the web as CSV and the link is correct.</p></div>'; document.getElementById('setup').style.display='block'; });
+    .catch(e=>{ document.getElementById('count').textContent='Could not load data'; document.getElementById('content').innerHTML='<div class="tile"><p class="muted">Couldn\'t read the responses ('+e.message+'). Check the CSV link.</p></div>'; document.getElementById('setup').style.display='block'; });
 }
 load();
 </script>
